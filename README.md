@@ -4,7 +4,7 @@ This is a full-stack CRUD application built with the **MEAN stack** (MongoDB, Ex
 
 ## 🚀 Features
 
--   **Full Stack**: Angular 15 Frontend + Node.js/Express Backend + MongoDB.
+-   **Full Stack**: Angular 15 Frontend + Node.js/Express Backend + MongoDB
 -   **Dockerized**:
     -   Multi-stage builds for smaller images.
     -   Non-root user execution for security.
