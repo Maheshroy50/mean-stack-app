@@ -76,7 +76,7 @@ The GitHub Actions workflow (`.github/workflows/deploy.yml`) performs the follow
 ### Secrets Configuration
 To use the pipeline, configure the following **GitHub Secrets**:
 -   `DOCKER_USERNAME`: Your Docker Hub username.
--   `DOCKER_PASSWORD`: **Docker Access Token** (Recommended).
+-   `DOCKER_PASSWORD`: **Docker Access Token** 
 -   `EC2_HOST`: Public IP of your EC2 instance.
 -   `EC2_USER`: `ubuntu`
 -   `EC2_SSH_KEY`: Your private SSH key.
