@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including devDependencies for build)
+# Force cache bust: 1
 RUN npm ci && npm cache clean --force
 
 COPY . .

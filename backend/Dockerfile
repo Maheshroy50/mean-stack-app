@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies and clean cache
+# Force cache bust: 1
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy application code with correct ownership
