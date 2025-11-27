@@ -1,0 +1,56 @@
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/mean-backend:latest
+    ports:
+      - "8080:80"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/dd_db
+      - NODE_ENV=production
+    depends_on:
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+    restart: always
+    # Healthcheck to ensure the service is actually ready
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Security: Run as read-only if possible (requires temp paths for logs etc)
+    # read_only: true
+
+  frontend:
+    image: ${DOCKER_USERNAME}/mean-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: always
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    restart: always
+    # Healthcheck for MongoDB
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:

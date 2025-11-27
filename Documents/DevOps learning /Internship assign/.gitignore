@@ -1,0 +1,15 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# SSH Keys
+terraform/mean-stack-key
+terraform/mean-stack-key.pub
+
+# Sensitive Terraform Files
+terraform/security.tf
+
+# OS
+.DS_Store
