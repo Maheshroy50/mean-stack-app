@@ -1,0 +1,155 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Lint Backend
+        run: |
+          cd backend
+          npm ci
+          npm run lint
+
+      - name: Lint Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run lint
+
+  build-and-scan:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build Backend
+      - name: Build Backend Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/mean-backend:${{ github.sha }} ./backend
+
+      - name: Scan Backend Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/mean-backend:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # Fail pipeline if vulnerabilities found
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      # Build Frontend
+      - name: Build Frontend Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/mean-frontend:${{ github.sha }} ./frontend
+
+      - name: Scan Frontend Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/mean-frontend:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      # Push Images if Scan Passed
+      - name: Push Backend Image
+        run: |
+          docker tag ${{ secrets.DOCKER_USERNAME }}/mean-backend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/mean-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/mean-backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/mean-backend:latest
+
+      - name: Push Frontend Image
+        run: |
+          docker tag ${{ secrets.DOCKER_USERNAME }}/mean-frontend:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/mean-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/mean-frontend:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/mean-frontend:latest
+
+  deploy:
+    needs: build-and-scan
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only deploy on main branch
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get Runner IP
+        id: ip
+        run: |
+          ip=$(curl -s https://api.ipify.org)
+          echo "runner_ip=$ip" >> $GITHUB_OUTPUT
+
+      - name: Whitelist Runner IP
+        run: |
+          sg_id=$(aws ec2 describe-security-groups --filters Name=tag:Name,Values=mean-stack-sg --query "SecurityGroups[0].GroupId" --output text)
+          aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.runner_ip }}/32
+
+      - name: Copy Docker Compose to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/${{ secrets.EC2_USER }}/app"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_USER }}/app
+            # Create .env file for Docker Compose variables
+            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
+            # Login to Docker Hub on EC2
+            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            # Pull latest images
+            docker-compose pull
+            # Restart containers
+            docker-compose up -d
+            # Clean up
+            docker system prune -f
+
+      - name: Verify Deployment (Smoke Test)
+        run: |
+          echo "Waiting for services to initialize..."
+          sleep 30
+          echo "Checking Frontend..."
+          curl -f http://${{ secrets.EC2_HOST }} || exit 1
+          echo "Checking Backend API..."
+          curl -f http://${{ secrets.EC2_HOST }}/api/tutorials || exit 1
+          echo "Smoke Test Passed!"
+
+      - name: Revoke Runner IP
+        if: always()
+        run: |
+          sg_id=$(aws ec2 describe-security-groups --filters Name=tag:Name,Values=mean-stack-sg --query "SecurityGroups[0].GroupId" --output text)
+          aws ec2 revoke-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.runner_ip }}/32
