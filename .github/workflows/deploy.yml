@@ -119,16 +119,30 @@ jobs:
             docker-compose pull
             # Restart containers
             docker-compose up -d
-            # Clean up
-            docker system prune -f
 
       - name: Verify Deployment (Smoke Test)
         run: |
           echo "Waiting for services to initialize..."
-          sleep 30
+          echo "Waiting for services to initialize..."
+          sleep 90
           echo "Checking Frontend..."
           curl -f http://${{ secrets.EC2_HOST }} || exit 1
           echo "Checking Backend API..."
           curl -f http://${{ secrets.EC2_HOST }}/api/tutorials || exit 1
           echo "Smoke Test Passed!"
 
+      - name: Debug Failure
+        if: failure()
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_USER }}/app
+            echo "=== Docker Images ==="
+            docker images
+            echo "=== Docker Compose Status ==="
+            docker-compose ps -a
+            echo "=== Docker Compose Logs ==="
+            docker-compose logs --tail=50
