@@ -2,7 +2,7 @@
 
 This is a full-stack CRUD application built with the **MEAN stack** (MongoDB, Express, Angular 15, Node.js). It has been fully **Dockerized**, optimized for production, and includes a complete **CI/CD pipeline** for deployment to AWS.
 
-## 🚀 Features
+## Features
 
 -   **Full Stack**: Angular 15 Frontend + Node.js/Express Backend + MongoDB
 -   **Dockerized**:
@@ -19,67 +19,8 @@ This is a full-stack CRUD application built with the **MEAN stack** (MongoDB, Ex
     -   Integrated ESLint for both Frontend and Backend.
     -   Standardized code style.
 
-## 📋 Prerequisites
 
--   **Docker** and **Docker Compose** installed.
--   **Node.js** (v18+) (only for local non-Docker development).
--   **AWS Account** (for deployment).
-
-## 🛠 Quick Start (Docker Compose)
-
-The easiest way to run the application is using Docker Compose.
-
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository-url>
-    cd <repository-folder>
-    ```
-
-2.  **Start the application**:
-    ```bash
-    docker-compose up -d --build
-    ```
-    *This will build the images, start MongoDB, Backend, and Frontend containers, and set up the network.*
-
-3.  **Access the App**:
-    -   **Frontend**: [http://localhost](http://localhost)
-    -   **Backend API**: [http://localhost/api/tutorials](http://localhost/api/tutorials) (Proxied via Nginx)
-    -   **Direct Backend**: [http://localhost:8080](http://localhost:8080) (Mapped to Internal Port 80)
-
-4.  **Stop the application**:
-    ```bash
-    docker-compose down
-    ```
-
-## 💻 Development Setup (Manual)
-
-If you want to run the services locally without Docker:
-
-### Backend
-1.  Navigate to `backend/`:
-    ```bash
-    cd backend
-    npm install
-    ```
-2.  Start the server:
-    ```bash
-    node server.js
-    ```
-    *Runs on port 8080.*
-
-### Frontend
-1.  Navigate to `frontend/`:
-    ```bash
-    cd frontend
-    npm install
-    ```
-2.  Start the Angular dev server:
-    ```bash
-    ng serve --port 8081
-    ```
-    *Runs on port 8081.*
-
-## 🏗️ Infrastructure Provisioning (Terraform)
+   ## 🏗️ Infrastructure Provisioning (Terraform)
 
 You can provision the entire AWS infrastructure (VPC, Security Groups, EC2) automatically using Terraform.
 
