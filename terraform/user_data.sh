@@ -19,8 +19,8 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plu
 # Add ubuntu user to docker group
 sudo usermod -aG docker ubuntu
 
-# Install Docker Compose (Standalone) - Optional as plugin is installed above, but good for compatibility
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# Install Docker Compose (Standalone) 
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Print versions
