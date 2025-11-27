@@ -155,6 +155,19 @@ We use **ESLint** to maintain code quality.
     npm run lint
     ```
 
+## Screenshots
+
+### CI/CD Configuration and Execution
+![CI/CD Pipeline Execution](screenshots/cicd_exe.png)
+
+### Docker Image Build and Push Process
+![Docker Build and Push](screenshots/docker_build_push.png)
+
+### Application Deployment and Working UI
+![Application UI](screenshots/app.png)
+
+### Nginx Setup 
+![Infrastructure Details](screenshots/nginx.png)
 ## 📂 Project Structure
 
 ```
