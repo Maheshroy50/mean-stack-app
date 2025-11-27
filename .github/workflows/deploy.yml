@@ -92,23 +92,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Get Runner IP
-        id: ip
-        run: |
-          ip=$(curl -s https://api.ipify.org)
-          echo "runner_ip=$ip" >> $GITHUB_OUTPUT
-
-      - name: Whitelist Runner IP
-        run: |
-          sg_id=$(aws ec2 describe-security-groups --filters Name=tag:Name,Values=mean-stack-sg --query "SecurityGroups[0].GroupId" --output text)
-          aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.runner_ip }}/32
 
       - name: Copy Docker Compose to EC2
         uses: appleboy/scp-action@master
@@ -148,8 +132,3 @@ jobs:
           curl -f http://${{ secrets.EC2_HOST }}/api/tutorials || exit 1
           echo "Smoke Test Passed!"
 
-      - name: Revoke Runner IP
-        if: always()
-        run: |
-          sg_id=$(aws ec2 describe-security-groups --filters Name=tag:Name,Values=mean-stack-sg --query "SecurityGroups[0].GroupId" --output text)
-          aws ec2 revoke-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.runner_ip }}/32

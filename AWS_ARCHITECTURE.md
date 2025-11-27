@@ -15,7 +15,7 @@ graph TD
             subgraph Public_Subnet ["🟦 Public Subnet"]
 
                 IGW -->|Route| SG["🛡️ Security Group"]
-                SG -->|Allow Port 80/22| EC2["💻 EC2 Instance"]
+                SG -->|Allow Port 80/22 (Anywhere)| EC2["💻 EC2 Instance"]
 
                 subgraph Docker_Host ["🐳 Docker Host"]
                     Nginx["🔁 Nginx Proxy"]
@@ -41,7 +41,7 @@ graph TD
 -   **Compute**: Amazon EC2 (Ubuntu 22.04 LTS) placed within the Public Subnet.
 -   **Security**:
     -   **Network ACLs**: Stateless traffic filtering at the subnet level.
-    -   **Network**: Security Group allowing Inbound traffic on Port 80 (HTTP) and Port 22 (SSH).
+    -   **Network**: Security Group allowing Inbound traffic on Port 80 (HTTP) and Port 22 (SSH) from **Anywhere** (`0.0.0.0/0`).
 -   **Storage**: EBS Volume for EC2 (Persistent data for MongoDB).
 
 ### 2. Containerization (Docker)
@@ -66,13 +66,11 @@ The pipeline consists of three main jobs:
 4.  **Push Images**: Push the safe images to Docker Hub.
 
 #### Job 3: Deploy to EC2
-1.  **Authorize Runner IP**: Dynamically adds the GitHub Runner's IP to the Security Group (Port 22).
-2.  **SSH into EC2**: Connect to the instance using GitHub Secrets.
-3.  **Pull Latest Images**: Run `docker-compose pull`.
-4.  **Restart Containers**: Run `docker-compose up -d`.
-5.  **Verify Deployment**: Runs automated smoke tests (curl) to ensure services are up.
-6.  **Prune**: Clean up old images.
-7.  **Revoke Runner IP**: Removes the Runner's IP from the Security Group (always runs).
+1.  **SSH into EC2**: Connect to the instance using GitHub Secrets.
+2.  **Pull Latest Images**: Run `docker-compose pull`.
+3.  **Restart Containers**: Run `docker-compose up -d`.
+4.  **Verify Deployment**: Runs automated smoke tests (curl) to ensure services are up.
+5.  **Prune**: Clean up old images.
 
 ## Implementation Steps
 

@@ -123,7 +123,7 @@ For a detailed breakdown of the AWS Architecture (including **VPC**, **Public Su
 ### Infrastructure Highlights
 -   **Custom VPC**: Production-grade network isolation.
 -   **Public Subnet**: Securely hosts the application gateway.
--   **Security Groups**: Strict firewall rules for minimal attack surface.
+-   **Security Groups**: Firewall rules allowing HTTP and SSH access from anywhere.
 
 ### CI/CD Pipeline Overview
 The GitHub Actions workflow (`.github/workflows/deploy.yml`) performs the following:
@@ -139,9 +139,6 @@ To use the pipeline, configure the following **GitHub Secrets**:
 -   `EC2_HOST`: Public IP of your EC2 instance.
 -   `EC2_USER`: `ubuntu`
 -   `EC2_SSH_KEY`: Your private SSH key.
--   `AWS_ACCESS_KEY_ID`: Your AWS Access Key (for dynamic firewall updates).
--   `AWS_SECRET_ACCESS_KEY`: Your AWS Secret Key.
--   `AWS_REGION`: `us-east-1` (or your specific region).
 
 ## 🔍 Linting & Code Quality
 
