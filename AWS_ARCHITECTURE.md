@@ -15,7 +15,7 @@ graph TD
             subgraph Public_Subnet ["🟦 Public Subnet"]
 
                 IGW -->|Route| SG["🛡️ Security Group"]
-                SG -->|Allow Port 80/22 (Anywhere)| EC2["💻 EC2 Instance"]
+                SG -->|Allow Port 80/22 | EC2["💻 EC2 Instance"]
 
                 subgraph Docker_Host ["🐳 Docker Host"]
                     Nginx["🔁 Nginx Proxy"]
