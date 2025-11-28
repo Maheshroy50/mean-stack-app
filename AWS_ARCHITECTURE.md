@@ -85,7 +85,7 @@ The pipeline consists of three main jobs:
 3.  Allow Port 80 in the Security Group.
 
 ### Step 3: GitHub Secrets
-Add the following secrets to your GitHub Repository:
+Added the following secrets to the GitHub Repository:
 -   `DOCKER_USERNAME`: Your Docker Hub username.
 -   `DOCKER_PASSWORD`: **Use your Docker Access Token**.
 -   `EC2_HOST`: Public IP of your EC2 instance.
